@@ -24,7 +24,7 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     level=logging.INFO,
     handlers=[
-        logging.FileHandler(os.environ.get("LOG_PATH", "/app/logs/bot.log"), encoding="utf-8"),
+        logging.FileHandler(os.environ.get("LOG_PATH", "bot.log"), encoding="utf-8"),
         logging.StreamHandler()
     ]
 )
