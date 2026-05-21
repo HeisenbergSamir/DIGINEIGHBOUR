@@ -8,7 +8,7 @@ from core.bot import run_bot
 
 if __name__ == "__main__":
     os.makedirs("logs", exist_ok=True)
-    os.makedirs(os.path.dirname(os.environ.get("DN_DB", "/app/data/dn.db")), exist_ok=True)
+    os.makedirs(os.path.dirname(os.environ.get("DN_DB", "data/dn.db")), exist_ok=True)
     init_db()
     token = os.environ.get("BOT_TOKEN", "")
     if not token:
