@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Categories — {{ community.name }}{% endblock %}
+{% block page_title %}Categories{% endblock %}
+{% block page_sub %}{{ community.name }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('dashboard') }}" class="btn btn-outline btn-sm">← Dashboard</a>
+<button class="btn btn-outline btn-sm" onclick="openModal('import-json')">📥 Import JSON</button>
+<a href="{{ url_for('category_add', cid=community.id) }}" class="btn btn-primary btn-sm">+ Add Category</a>
+{% endblock %}
+{% block content %}
+<div class="card">
+<table>
+<thead><tr><th>Icon</th><th>Name</th><th>Command</th><th>Parent</th><th>Caps (D/W/M/T)</th><th>Days</th><th>Status</th><th>Actions</th></tr></thead>
+<tbody>
+{% for c in cats %}
+<tr>
+  <td style="font-size:20px;text-align:center;">{{ c.icon }}</td>
+  <td><div style="font-weight:500;">{{ c.name }}</div><div class="text-xs-muted">{{ c.description or '' }}</div></td>
+  <td>{% if c.command %}<code>/{{ c.command }}</code>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+  <td class="text-sm text-muted">{{ c.parent_name or '—' }}</td>
+  <td class="text-sm text-muted mono">{{ c.max_listings_per_user_daily or '∞' }}/{{ c.max_listings_per_user_weekly or '∞' }}/{{ c.max_listings_per_user_monthly or '∞' }}/{{ c.max_listings_per_user_total or '∞' }}</td>
+  <td class="text-sm">{{ c.listing_days or '∞' }}d</td>
+  <td>{% if c.is_active %}<span class="badge badge-active">Active</span>{% else %}<span class="badge badge-archived">Off</span>{% endif %}</td>
+  <td class="flex gap-8">
+    <a href="{{ url_for('category_edit', cat_id=c.id) }}" class="btn btn-outline btn-xs">Edit</a>
+    <form method="POST" action="{{ url_for('category_delete', cat_id=c.id) }}" onsubmit="return confirm('Delete this category?')">
+      <button class="btn btn-danger btn-xs">Del</button>
+    </form>
+  </td>
+</tr>
+{% else %}<tr><td colspan="8" class="text-muted" style="text-align:center;padding:24px;">No categories. Add one or import via JSON.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+<div class="modal-overlay" id="import-json">
+<div class="modal" style="max-width:600px;">
+  <div class="modal-title">Import Categories from JSON</div>
+  <div class="modal-sub">Paste a JSON array of categories. Use ChatGPT to generate it.</div>
+  <form method="POST" action="{{ url_for('category_import_json', cid=community.id) }}">
+    <div class="form-group">
+      <label>JSON Data</label>
+      <textarea name="json_data" rows="12" style="font-family:monospace;font-size:12px;" placeholder='[{"name":"Tutors","slug":"tutors","icon":"📚","command":"tutors","description":"Find tutors and teachers","listing_days":90,"schema_fields":[{"key":"subject","label":"What do you teach?","type":"text","example":"Hindi, Maths"}]}]'></textarea>
+    </div>
+    <div style="background:var(--bg3);padding:10px;border-radius:6px;font-size:12px;color:var(--text2);margin-bottom:14px;">
+      💡 <strong>GPT prompt:</strong> "Generate a JSON array of community listing categories for a residential society. Each must have: name, slug, icon, command, description, listing_days, schema_fields (array with key/label/type/example). Include: services, rentals, events, help-wanted. Return only valid JSON."
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" onclick="closeModal('import-json')">Cancel</button>
+      <button type="submit" class="btn btn-primary">Import</button>
+    </div>
+  </form>
+</div>
+</div>
+{% endblock %}

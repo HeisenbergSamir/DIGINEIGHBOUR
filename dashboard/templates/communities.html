@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Communities{% endblock %}
+{% block page_title %}Communities{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('community_add') }}" class="btn btn-primary btn-sm">+ Add Community</a>{% endblock %}
+{% block content %}
+<div class="card">
+<table>
+<thead><tr><th>Name</th><th>Slug</th><th>Bot</th><th>Status</th><th>Actions</th></tr></thead>
+<tbody>
+{% for c in communities %}
+<tr>
+  <td><div style="font-weight:600;">{{ c.name }}</div><div class="text-xs-muted">{{ c.description or '' }}</div></td>
+  <td><code>{{ c.slug }}</code></td>
+  <td><code class="text-xs">{{ c.bot_token[:20] + '...' if c.bot_token else '❌ Not set' }}</code></td>
+  <td><span class="badge badge-{{ 'active' if c.is_active else 'archived' }}">{{ 'Active' if c.is_active else 'Inactive' }}</span></td>
+  <td class="flex gap-8">
+    <a href="{{ url_for('community_edit', cid=c.id) }}" class="btn btn-outline btn-xs">Edit</a>
+    <a href="{{ url_for('categories', cid=c.id) }}" class="btn btn-outline btn-xs">Categories</a>
+  </td>
+</tr>
+{% else %}<tr><td colspan="5" class="text-muted" style="text-align:center;padding:24px;">No communities yet.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}

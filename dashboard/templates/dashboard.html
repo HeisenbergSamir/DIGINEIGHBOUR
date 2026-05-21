@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — DigiNeighbour{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_sub %}DigiNeighbour — Your Smart Digital Neighbourhood{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('community_add') }}" class="btn btn-primary btn-sm">+ Add Community</a>{% endblock %}
+{% block content %}
+{% if not communities %}
+<div class="card" style="text-align:center;padding:48px;">
+  <div style="font-size:52px;margin-bottom:14px;">🏘️</div>
+  <h2 style="margin-bottom:8px;">Welcome to DigiNeighbour!</h2>
+  <p class="text-muted" style="margin-bottom:20px;">Add your first community to get started.</p>
+  <a href="{{ url_for('community_add') }}" class="btn btn-primary">+ Add Community</a>
+</div>
+{% else %}
+{% for c in communities %}
+{% set s = stats.get(c.id, {}) %}
+<div class="card">
+  <div class="flex-between mb-12">
+    <div>
+      <div style="font-size:16px;font-weight:700;">{{ c.name }}</div>
+      <div class="text-xs-muted">{{ c.description or '' }}{% if c.bot_username %} · @{{ c.bot_username }}{% endif %}</div>
+    </div>
+    <div class="flex gap-8" style="flex-wrap:wrap;">
+      <a href="{{ url_for('categories', cid=c.id) }}" class="btn btn-outline btn-sm">🏷️ Categories</a>
+      <a href="{{ url_for('listings', cid=c.id) }}" class="btn btn-outline btn-sm">📋 Listings</a>
+      <a href="{{ url_for('users', cid=c.id) }}" class="btn btn-outline btn-sm">👥 Users</a>
+      <a href="{{ url_for('invites', cid=c.id) }}" class="btn btn-outline btn-sm">🔗 Invites</a>
+      <a href="{{ url_for('groupbuys', cid=c.id) }}" class="btn btn-outline btn-sm">🛒 Group Buys</a>
+      <a href="{{ url_for('sponsorships', cid=c.id) }}" class="btn btn-outline btn-sm">📣 Sponsors</a>
+      {% if s.pending %}<a href="{{ url_for('approvals', cid=c.id) }}" class="btn btn-warn btn-sm">⏳ {{ s.pending }} Pending</a>{% endif %}
+      <a href="{{ url_for('community_edit', cid=c.id) }}" class="btn btn-outline btn-sm">⚙️ Edit</a>
+    </div>
+  </div>
+  <div class="stats-grid" style="margin-bottom:0;">
+    <div class="stat accent"><div class="stat-label">Active Listings</div><div class="stat-value">{{ s.listings or 0 }}</div></div>
+    <div class="stat"><div class="stat-label">Members</div><div class="stat-value">{{ s.users or 0 }}</div></div>
+    <div class="stat warn"><div class="stat-label">Pending Approval</div><div class="stat-value">{{ s.pending or 0 }}</div></div>
+    <div class="stat success"><div class="stat-label">Group Buys</div><div class="stat-value">{{ s.groupbuys or 0 }}</div></div>
+    <div class="stat"><div class="stat-label">Open Invites</div><div class="stat-value">{{ s.invites_pending or 0 }}</div></div>
+    <div class="stat"><div class="stat-label">Sponsor Enquiries</div><div class="stat-value">{{ s.sponsor_inquiries or 0 }}</div></div>
+  </div>
+  {% if not c.bot_token %}
+  <div style="margin-top:10px;padding:8px 12px;background:rgba(239,68,68,.08);border-radius:6px;font-size:12px;color:var(--danger);">
+    ⚠️ Bot token not set — <a href="{{ url_for('community_edit', cid=c.id) }}" style="color:var(--danger);">add it here</a>
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+{% endif %}
+{% endblock %}

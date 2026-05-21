@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}{% if cat %}Edit{% else %}Add{% endif %} Category{% endblock %}
+{% block page_title %}{% if cat %}Edit: {{ cat.name }}{% else %}Add Category{% endif %}{% endblock %}
+{% block page_sub %}{{ community.name }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('categories', cid=community.id) }}" class="btn btn-outline btn-sm">← Back</a>
+{% endblock %}
+{% block content %}
+<div class="grid-2">
+<div>
+<div class="card">
+<form method="POST">
+  <div class="grid-2">
+    <div class="form-group"><label>Icon *</label><input type="text" name="icon" value="{{ cat.icon if cat else '📌' }}" maxlength="4" style="font-size:22px;text-align:center;"></div>
+    <div class="form-group"><label>Slug * {% if cat %}<span class="text-xs-muted">(readonly)</span>{% endif %}</label>
+      <input type="text" name="slug" value="{{ cat.slug if cat else '' }}" required placeholder="e.g. rent" {% if cat %}readonly{% endif %}></div>
+  </div>
+  <div class="form-group"><label>Name *</label><input type="text" name="name" value="{{ cat.name if cat else '' }}" required placeholder="e.g. Rentals"></div>
+  <div class="form-group"><label>Description</label><input type="text" name="description" value="{{ cat.description if cat else '' }}" placeholder="Shown to residents"></div>
+  <div class="grid-2">
+    <div class="form-group"><label>Command (e.g. <code>rent</code> for /rent)</label><input type="text" name="command" value="{{ cat.command if cat else '' }}" placeholder="rent"></div>
+    <div class="form-group"><label>Sort Order</label><input type="number" name="sort_order" value="{{ cat.sort_order if cat else 0 }}" min="0"></div>
+  </div>
+  <div class="form-group"><label>Parent Category (for sub-menus)</label>
+    <select name="parent_id">
+      <option value="">— Top level —</option>
+      {% for p in parent_cats %}<option value="{{ p.id }}" {% if cat and cat.parent_id == p.id %}selected{% endif %}>{{ p.icon }} {{ p.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="grid-2">
+    <div class="form-group"><label>Listing valid days (0=forever)</label><input type="number" name="listing_days" value="{{ cat.listing_days if cat else 60 }}" min="0"></div>
+    <div class="form-group"><label>Requires Approval?</label>
+      <select name="requires_approval">
+        <option value="0" {% if not cat or not cat.requires_approval %}selected{% endif %}>No</option>
+        <option value="1" {% if cat and cat.requires_approval %}selected{% endif %}>Yes</option>
+      </select>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="form-group"><label>Start Date</label><input type="date" name="start_date" value="{{ cat.start_date or '' }}"></div>
+    <div class="form-group"><label>End Date</label><input type="date" name="end_date" value="{{ cat.end_date or '' }}"></div>
+  </div>
+  <hr class="divider">
+  <div style="font-weight:600;margin-bottom:10px;">📊 Spam Caps <span class="text-xs-muted">(0 = unlimited)</span></div>
+  <div class="grid-2">
+    <div class="form-group"><label>Max listings/person/day</label><input type="number" name="max_daily" value="{{ cat.max_listings_per_user_daily if cat else 0 }}" min="0"></div>
+    <div class="form-group"><label>Max listings/person/week</label><input type="number" name="max_weekly" value="{{ cat.max_listings_per_user_weekly if cat else 0 }}" min="0"></div>
+  </div>
+  <div class="grid-2">
+    <div class="form-group"><label>Max listings/person/month</label><input type="number" name="max_monthly" value="{{ cat.max_listings_per_user_monthly if cat else 0 }}" min="0"></div>
+    <div class="form-group"><label>Max active listings/person (total)</label><input type="number" name="max_total" value="{{ cat.max_listings_per_user_total if cat else 0 }}" min="0"></div>
+  </div>
+  {% if cat %}<div class="form-group"><label>Status</label>
+    <select name="is_active"><option value="1" {% if cat.is_active %}selected{% endif %}>Active</option><option value="0" {% if not cat.is_active %}selected{% endif %}>Inactive</option></select>
+  </div>{% endif %}
+  <hr class="divider">
+  <div class="form-group">
+    <label>Schema Fields (JSON) — what the bot asks</label>
+    <textarea name="schema_fields" id="schema" rows="14" style="font-family:monospace;font-size:12px;">{{ cat.schema_fields if cat else '[\n  {\n    "key": "item_name",\n    "label": "What are you listing?",\n    "type": "text",\n    "example": "e.g. 2BHK flat, guitar lessons"\n  },\n  {\n    "key": "price",\n    "label": "Price or rate?",\n    "type": "text",\n    "example": "e.g. Rs 5000/month"\n  },\n  {\n    "key": "contact",\n    "label": "How to contact you?",\n    "type": "text",\n    "example": "e.g. WhatsApp 9876543210"\n  }\n]' }}</textarea>
+  </div>
+  <button type="submit" class="btn btn-primary">{{ 'Save Changes' if cat else 'Add Category' }}</button>
+</form>
+</div>
+</div>
+<div>
+  <div class="card">
+    <div class="card-title">Quick Load Examples</div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      {% for label,schema in [
+        ('Tutor/Classes','[{"key":"subject","label":"What subject or skill do you teach?","type":"text","example":"Hindi, Maths, Guitar, Yoga"},{"key":"age_group","label":"Which age group?","type":"text","example":"6-12 years, adults, all ages"},{"key":"fee","label":"Fee per month?","type":"text","example":"Rs 2000/month"},{"key":"timings","label":"Available days and timings?","type":"text","example":"Weekdays 4pm-7pm"},{"key":"mode","label":"Online or at home?","type":"choice","choices":["At home","Online","Both"]}]'),
+        ('Item for Sale','[{"key":"item","label":"What are you selling?","type":"text","example":"Samsung TV 43 inch 2020"},{"key":"condition","label":"Condition?","type":"choice","choices":["New","Like new","Good","Fair","For parts"]},{"key":"price","label":"Your price?","type":"text","example":"Rs 12000 negotiable"},{"key":"reason","label":"Why selling?","type":"text","example":"Upgrading to bigger size"}]'),
+        ('Maid/Cook/Helper','[{"key":"service","label":"What service do you offer?","type":"choice","choices":["Maid","Cook","Both","Babysitter","Elder care"]},{"key":"timings","label":"Your available timings?","type":"text","example":"Morning 7am-11am"},{"key":"rate","label":"Monthly rate?","type":"text","example":"Rs 5000/month"},{"key":"experience","label":"Years of experience?","type":"text","example":"8 years"}]'),
+        ('Rental','[{"key":"item","label":"What are you renting out?","type":"text","example":"Projector, BBQ grill, tent"},{"key":"rate","label":"Rental rate?","type":"text","example":"Rs 500/day"},{"key":"deposit","label":"Security deposit?","type":"text","example":"Rs 1000 refundable"},{"key":"availability","label":"Available when?","type":"text","example":"Weekends only"}]'),
+        ('Event/Outing','[{"key":"event","label":"What is the event?","type":"text","example":"Diwali dinner, Coorg trip"},{"key":"date","label":"Date and time?","type":"text","example":"15 Nov, 7pm"},{"key":"venue","label":"Venue or meeting point?","type":"text","example":"Clubhouse / Gate 2"},{"key":"cost","label":"Cost per person?","type":"text","example":"Free / Rs 500"},{"key":"max","label":"Max participants?","type":"text","example":"20 people"}]'),
+        ('Plumber/Electrician','[{"key":"service","label":"What service do you offer?","type":"text","example":"Plumbing repairs, electrical wiring"},{"key":"area","label":"Which areas do you serve?","type":"text","example":"All blocks, within 5km"},{"key":"rate","label":"Visit charge?","type":"text","example":"Rs 300 per visit plus materials"},{"key":"available","label":"When are you available?","type":"text","example":"Mon-Sat 9am-6pm"}]'),
+        ('Carpool','[{"key":"from","label":"Pickup point?","type":"text","example":"Gate 1, Tower A"},{"key":"to","label":"Destination?","type":"text","example":"Koramangala, MG Road"},{"key":"schedule","label":"Days and timing?","type":"text","example":"Mon-Fri, 9am sharp"},{"key":"seats","label":"Seats available?","type":"text","example":"2 seats"},{"key":"fuel","label":"Fuel contribution?","type":"text","example":"Rs 100 per day per person"}]'),
+      ] %}
+      <button class="btn btn-outline btn-xs" onclick='document.getElementById("schema").value=`{{ schema }}`'>{{ label }}</button>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Schema Field Types</div>
+    <div style="font-size:13px;display:flex;flex-direction:column;gap:10px;">
+      <div><strong>type: "text"</strong><br><span class="text-muted">Free text answer from resident</span></div>
+      <div><strong>type: "choice"</strong><br><span class="text-muted">Multiple choice buttons</span>
+        <pre style="background:var(--bg3);padding:6px;border-radius:4px;font-size:11px;margin-top:4px;">"type": "choice",
+"choices": ["Online","At home","Both"]</pre>
+      </div>
+      <div><strong>type: "number"</strong><br><span class="text-muted">Numbers only</span></div>
+    </div>
+    <hr class="divider">
+    <div class="card-title">GPT Prompt to Generate Schema</div>
+    <div style="font-size:12px;color:var(--text2);background:var(--bg3);padding:10px;border-radius:6px;line-height:1.7;">
+      Copy this prompt into ChatGPT:<br><br>
+      <em>"Generate a JSON schema for a community Telegram bot listing category called [CATEGORY NAME]. Each field must have: key (snake_case), label (question to ask), type (text/choice/number), example (sample answer). For choice fields add choices array. Generate 4-6 fields that collect all essential information. Return only the JSON array."</em>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>document.querySelector('form').addEventListener('submit',function(e){try{JSON.parse(document.getElementById('schema').value)}catch(err){e.preventDefault();alert('Schema JSON error: '+err.message)}})</script>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Admins{% endblock %}
+{% block page_title %}Admin Accounts{% endblock %}
+{% block topbar_actions %}<button class="btn btn-primary btn-sm" onclick="openModal('add-admin')">+ Add Admin</button>{% endblock %}
+{% block content %}
+<div class="card">
+<table>
+<thead><tr><th>Username</th><th>Name</th><th>Role</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+<tbody>
+{% for a in admins %}
+<tr>
+  <td style="font-weight:500;">{{ a.username }}</td>
+  <td class="text-sm">{{ a.display_name or '—' }}</td>
+  <td><span class="tag">{{ a.role }}</span></td>
+  <td>{% if a.is_active %}<span class="badge badge-active">Active</span>{% else %}<span class="badge badge-archived">Disabled</span>{% endif %}</td>
+  <td class="text-xs-muted">{{ a.created_at[:10] }}</td>
+  <td>
+    <form method="POST" action="{{ url_for('admin_toggle', aid=a.id) }}" style="display:inline;">
+      <button class="btn btn-outline btn-xs">{{ 'Disable' if a.is_active else 'Enable' }}</button>
+    </form>
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+<div class="modal-overlay" id="add-admin">
+<div class="modal">
+  <div class="modal-title">Add Admin</div>
+  <div class="modal-sub">New admin can log into this dashboard</div>
+  <form method="POST" action="{{ url_for('admin_add') }}">
+    <div class="form-group"><label>Display Name</label><input type="text" name="display_name" placeholder="Full name"></div>
+    <div class="form-group"><label>Username *</label><input type="text" name="username" required placeholder="Login username"></div>
+    <div class="form-group"><label>Password (min 8 chars) *</label><input type="password" name="password" required></div>
+    <div class="form-group"><label>Role</label>
+      <select name="role"><option value="admin">Admin</option><option value="manager">Manager</option><option value="superadmin">Superadmin</option></select>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" onclick="closeModal('add-admin')">Cancel</button>
+      <button type="submit" class="btn btn-primary">Add Admin</button>
+    </div>
+  </form>
+</div>
+</div>
+{% endblock %}

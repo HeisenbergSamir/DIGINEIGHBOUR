@@ -1,0 +1,29 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>First Setup — CommunityAI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;margin:0;padding:0}:root{--bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--border:#2a3347;--text:#e8ecf4;--text2:#8b95a8;--accent:#4f8ef7;--danger:#ef4444}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center}
+.wrap{max-width:420px;width:100%;padding:20px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:28px}
+h1{font-size:18px;font-weight:700;margin-bottom:4px}p.sub{font-size:12px;color:var(--text2);margin-bottom:20px}
+.fg{margin-bottom:14px}label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px}
+input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 11px;font-size:14px;font-family:inherit}
+input:focus{outline:none;border-color:var(--accent)}
+.btn{width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:6px}
+.error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--danger);padding:9px;border-radius:6px;font-size:13px;margin-bottom:14px}
+.note{font-size:11px;color:var(--text2);margin-top:14px;padding:10px;background:var(--bg3);border-radius:6px}
+</style></head><body>
+<div class="wrap">
+<div class="card">
+<h1>🏘️ First Time Setup</h1>
+<p class="sub">Create your superadmin account. You only do this once.</p>
+{% with messages = get_flashed_messages(with_categories=true) %}{% for cat,msg in messages %}<div class="error">{{ msg }}</div>{% endfor %}{% endwith %}
+<form method="POST">
+  <div class="fg"><label>Display Name</label><input type="text" name="display_name" placeholder="e.g. Samir Dhingra"></div>
+  <div class="fg"><label>Username (for login)</label><input type="text" name="username" required placeholder="e.g. samir"></div>
+  <div class="fg"><label>Password (min 8 characters)</label><input type="password" name="password" required placeholder="Strong password"></div>
+  <button type="submit" class="btn">Create Account & Continue</button>
+</form>
+<div class="note">After setup, go to Communities → Add your first community → Add bot token → Add categories.</div>
+</div>
+</div>
+</body></html>

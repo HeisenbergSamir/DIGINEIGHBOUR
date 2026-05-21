@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Sponsorships — {{ community.name }}{% endblock %}
+{% block page_title %}Sponsorships{% endblock %}
+{% block page_sub %}{{ community.name }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('dashboard') }}" class="btn btn-outline btn-sm">← Dashboard</a>
+<button class="btn btn-primary btn-sm" onclick="openModal('add-sponsor')">+ Add Sponsor</button>
+{% endblock %}
+{% block content %}
+
+{% if inquiries %}
+<div class="card" style="border-left:3px solid var(--warn);">
+  <div class="card-title mb-12">📥 Sponsorship Inquiries ({{ inquiries|length }})</div>
+  <table>
+  <thead><tr><th>Business</th><th>From</th><th>Message</th><th>Date</th></tr></thead>
+  <tbody>
+  {% for inq in inquiries %}
+  <tr>
+    <td style="font-weight:600;">{{ inq.business or '—' }}</td>
+    <td class="text-sm">{{ inq.name }}{% if inq.telegram_username %} (@{{ inq.telegram_username }}){% endif %}</td>
+    <td class="text-sm text-muted" style="max-width:300px;">{{ inq.message or '' }}</td>
+    <td class="text-xs-muted">{{ inq.created_at[:10] }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% for s in sponsors %}
+<div class="card" style="border-left:3px solid {{ 'var(--success)' if s.is_active else 'var(--border)' }};">
+  <div class="flex-between mb-12">
+    <div>
+      <div style="font-weight:600;font-size:15px;">📣 {{ s.sponsor_name }}</div>
+      <div class="text-xs-muted">{{ s.start_date }} → {{ s.end_date }} · {{ s.shows_per_day }}/day · {{ s.show_count }} total shown</div>
+    </div>
+    <div class="flex gap-8">
+      <span class="badge badge-{{ 'active' if s.is_active else 'archived' }}">{{ 'Active' if s.is_active else 'Inactive' }}</span>
+      <form method="POST" action="{{ url_for('sponsorship_toggle', sid=s.id) }}"><button class="btn btn-outline btn-xs">{{ 'Pause' if s.is_active else 'Activate' }}</button></form>
+      <form method="POST" action="{{ url_for('sponsorship_delete', sid=s.id) }}" onsubmit="return confirm('Delete?')"><button class="btn btn-danger btn-xs">Delete</button></form>
+    </div>
+  </div>
+  {% if s.banner_text %}<div class="text-sm"><strong>Banner:</strong> {{ s.banner_text }}</div>{% endif %}
+  {% if s.description %}<div class="text-sm text-muted">{{ s.description }}</div>{% endif %}
+  {% if s.link %}<div class="text-sm"><a href="{{ s.link }}" target="_blank" style="color:var(--accent);">{{ s.link }}</a></div>{% endif %}
+</div>
+{% else %}
+<div class="empty"><div class="empty-icon">📣</div><h3>No sponsors yet</h3><p class="text-muted">Add a sponsor or wait for enquiries from residents.</p></div>
+{% endfor %}
+
+<div class="modal-overlay" id="add-sponsor">
+<div class="modal" style="max-width:540px;">
+  <div class="modal-title">Add Sponsorship</div>
+  <div class="modal-sub">Sponsor banners appear at the bottom of bot messages</div>
+  <form method="POST" action="{{ url_for('sponsorship_add', cid=community.id) }}">
+    <div class="form-group"><label>Sponsor / Business Name *</label><input type="text" name="sponsor_name" required placeholder="e.g. Sharma Medical Centre"></div>
+    <div class="form-group"><label>Banner Heading</label><input type="text" name="banner_text" placeholder="e.g. 🏥 Your health is our priority"></div>
+    <div class="form-group"><label>Description</label><textarea name="description" rows="2" placeholder="10% discount for Sobha City residents on all consultations"></textarea></div>
+    <div class="form-group"><label>Link (optional)</label><input type="text" name="link" placeholder="https://..."></div>
+    <div class="grid-3">
+      <div class="form-group"><label>Shows per day</label><input type="number" name="shows_per_day" value="3" min="1" max="20"></div>
+      <div class="form-group"><label>Start Date *</label><input type="date" name="start_date" required></div>
+      <div class="form-group"><label>End Date *</label><input type="date" name="end_date" required></div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" onclick="closeModal('add-sponsor')">Cancel</button>
+      <button type="submit" class="btn btn-primary">Add Sponsorship</button>
+    </div>
+  </form>
+</div>
+</div>
+{% endblock %}

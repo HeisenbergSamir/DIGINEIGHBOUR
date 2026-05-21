@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}CommunityAI{% endblock %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--border:#2a3347;--text:#e8ecf4;--text2:#8b95a8;--text3:#5a6478;--accent:#4f8ef7;--success:#22c55e;--warn:#f59e0b;--danger:#ef4444;--radius:10px;--sw:220px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;font-size:14px;line-height:1.6}
+.sidebar{width:var(--sw);min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);position:fixed;top:0;left:0;display:flex;flex-direction:column;overflow-y:auto;z-index:100}
+.logo{padding:18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-text{font-weight:700;font-size:14px;line-height:1.2}
+.logo-text span{display:block;font-size:11px;color:var(--text2);font-weight:400}
+.nav{flex:1;padding:10px 8px}
+.nav-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:10px 8px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;color:var(--text2);text-decoration:none;font-size:13px;transition:all .15s}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:rgba(79,142,247,.12);color:var(--accent)}
+.nav-badge{margin-left:auto;background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px}
+.sidebar-footer{padding:10px 8px;border-top:1px solid var(--border)}
+.admin-pill{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:6px}
+.admin-avatar{width:26px;height:26px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.admin-name{font-size:12px;font-weight:600}
+.admin-role{font-size:10px;color:var(--text2)}
+.logout{color:var(--text3);text-decoration:none;font-size:12px;margin-left:auto}
+.logout:hover{color:var(--danger)}
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column}
+.topbar{padding:14px 24px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.page-title{font-size:17px;font-weight:700}
+.page-sub{font-size:11px;color:var(--text2);margin-top:1px}
+.content{padding:20px 24px;flex:1}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:18px}
+.card-title{font-size:13px;font-weight:600;margin-bottom:14px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-bottom:20px}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.stat-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+.stat-value{font-size:26px;font-weight:700;margin:4px 0 2px}
+.stat-sub{font-size:10px;color:var(--text3)}
+.stat.accent{border-color:rgba(79,142,247,.3)}.stat.accent .stat-value{color:var(--accent)}
+.stat.warn{border-color:rgba(245,158,11,.3)}.stat.warn .stat-value{color:var(--warn)}
+.stat.danger{border-color:rgba(239,68,68,.3)}.stat.danger .stat-value{color:var(--danger)}
+.stat.success{border-color:rgba(34,197,94,.3)}.stat.success .stat-value{color:var(--success)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 12px;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)}
+td{padding:8px 12px;border-bottom:1px solid rgba(42,51,71,.4);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.02)}
+tr:last-child td{border:none}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-active{background:rgba(34,197,94,.15);color:var(--success)}
+.badge-pending{background:rgba(245,158,11,.15);color:var(--warn)}
+.badge-archived,.badge-closed{background:rgba(90,100,120,.2);color:var(--text2)}
+.badge-open{background:rgba(79,142,247,.15);color:var(--accent)}
+.badge-completed{background:rgba(34,197,94,.15);color:var(--success)}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;text-decoration:none;transition:all .15s;font-family:inherit}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#3b6fd4}
+.btn-outline{background:transparent;color:var(--text);border-color:var(--border)}.btn-outline:hover{background:var(--bg3)}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--danger);border-color:rgba(239,68,68,.3)}
+.btn-success{background:rgba(34,197,94,.15);color:var(--success);border-color:rgba(34,197,94,.3)}
+.btn-warn{background:rgba(245,158,11,.15);color:var(--warn);border-color:rgba(245,158,11,.3)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-xs{padding:2px 8px;font-size:11px}
+.form-group{margin-bottom:14px}
+label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px}
+input,select,textarea{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:7px 10px;font-size:13px;font-family:inherit;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(79,142,247,.1)}
+textarea{resize:vertical;min-height:80px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.flash{padding:9px 14px;border-radius:6px;margin-bottom:14px;font-size:13px;font-weight:500}
+.flash-success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--success)}
+.flash-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--danger)}
+.flash-warning{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:var(--warn)}
+.empty{text-align:center;padding:40px;color:var(--text3)}
+.empty-icon{font-size:36px;margin-bottom:10px}
+.tag{display:inline-block;padding:1px 7px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text2)}
+.mono{font-family:monospace}
+.text-sm{font-size:12px}.text-xs{font-size:11px}.text-muted{color:var(--text2)}.text-xs-muted{font-size:11px;color:var(--text3)}
+.text-success{color:var(--success)}.text-danger{color:var(--danger)}.text-warn{color:var(--warn)}.text-accent{color:var(--accent)}
+.flex{display:flex}.flex-between{display:flex;align-items:center;justify-content:space-between}.flex-center{display:flex;align-items:center}
+.gap-8{gap:8px}.gap-12{gap:12px}.mt-8{margin-top:8px}.mt-16{margin-top:16px}.mb-12{margin-bottom:12px}
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px;max-width:500px;width:90%;max-height:85vh;overflow-y:auto}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--text2);margin-bottom:18px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+code{background:var(--bg3);padding:1px 5px;border-radius:4px;font-size:12px;font-family:monospace;color:var(--text2)}
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if admin is defined %}
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">🏘️</div>
+    <div class="logo-text">CommunityAI<span>Admin Panel</span></div>
+  </div>
+  <div class="nav">
+    <div class="nav-label">Overview</div>
+    <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint=='dashboard' %}active{% endif %}">◼ Dashboard</a>
+
+    <div class="nav-label">Communities</div>
+    <a href="{{ url_for('communities') }}" class="nav-item {% if 'communit' in request.endpoint %}active{% endif %}">🏘️ Communities</a>
+
+    <div class="nav-label">Content</div>
+    <a href="{{ url_for('audit_log') }}" class="nav-item {% if request.endpoint=='audit_log' %}active{% endif %}">📜 Audit Log</a>
+    <a href="{{ url_for('admin_list') }}" class="nav-item {% if 'admin' in request.endpoint %}active{% endif %}">👤 Admins</a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="admin-pill">
+      <div class="admin-avatar">{{ admin.display_name[0].upper() if admin.display_name else 'A' }}</div>
+      <div>
+        <div class="admin-name">{{ admin.display_name or admin.username }}</div>
+        <div class="admin-role">{{ admin.role }}</div>
+      </div>
+      <a href="{{ url_for('logout') }}" class="logout" title="Logout">⏏</a>
+    </div>
+  </div>
+</nav>
+{% endif %}
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">{% block page_title %}Dashboard{% endblock %}</div>
+      <div class="page-sub">{% block page_sub %}{% endblock %}</div>
+    </div>
+    <div class="flex gap-8">{% block topbar_actions %}{% endblock %}</div>
+  </div>
+  <div class="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat,msg in messages %}
+      <div class="flash flash-{{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+<script>
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))closeModal(e.target.id)})
+document.querySelectorAll('[data-confirm]').forEach(el=>el.addEventListener('click',e=>{if(!confirm(el.dataset.confirm))e.preventDefault()}))
+setTimeout(()=>{document.querySelectorAll('.flash').forEach(f=>{f.style.transition='opacity .4s';f.style.opacity='0';setTimeout(()=>f.remove(),400)})},4000)
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

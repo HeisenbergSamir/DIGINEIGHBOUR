@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}{{ gb.title }}{% endblock %}
+{% block page_title %}{{ gb.title }}{% endblock %}
+{% block page_sub %}Group Buy · {{ community.name }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('groupbuys', cid=community.id) }}" class="btn btn-outline btn-sm">← Back</a>
+{% endblock %}
+{% block content %}
+<div class="stats-grid">
+  <div class="stat accent"><div class="stat-label">Ticket Price</div><div class="stat-value">₹{{ "{:,.0f}".format(gb.ticket_price or 0) }}</div></div>
+  <div class="stat success"><div class="stat-label">Total Amount</div><div class="stat-value">₹{{ "{:,.0f}".format(total_amount) }}</div></div>
+  <div class="stat warn"><div class="stat-label">Threshold</div><div class="stat-value">₹{{ "{:,.0f}".format(gb.threshold_amount or 0) }}</div></div>
+  <div class="stat"><div class="stat-label">Advance Needed</div><div class="stat-value">₹{{ "{:,.0f}".format(total_advance) }}</div></div>
+  <div class="stat success"><div class="stat-label">Advance Paid</div><div class="stat-value">₹{{ "{:,.0f}".format(paid_advance) }}</div></div>
+  <div class="stat"><div class="stat-label">Participants</div><div class="stat-value">{{ entries|length }}</div></div>
+</div>
+
+<div class="grid-2">
+<div class="card">
+  <div class="card-title">Status Controls</div>
+  <div class="flex gap-8" style="flex-wrap:wrap;">
+    <form method="POST" action="{{ url_for('groupbuy_update', gb_id=gb.id) }}" style="display:inline;">
+      <input type="hidden" name="action" value="set_group_link">
+      <input type="text" name="link" value="{{ gb.telegram_group_link or '' }}" placeholder="https://t.me/+xxxxx" style="width:220px;">
+      <button class="btn btn-primary btn-sm" style="margin-top:4px;">Set Group Link</button>
+    </form>
+    <form method="POST" action="{{ url_for('groupbuy_update', gb_id=gb.id) }}" style="display:inline;">
+      <button name="action" value="close" class="btn btn-warn btn-sm" data-confirm="Close this group buy?">Close</button>
+    </form>
+    <form method="POST" action="{{ url_for('groupbuy_update', gb_id=gb.id) }}" style="display:inline;">
+      <button name="action" value="complete" class="btn btn-success btn-sm" data-confirm="Mark as completed?">Complete</button>
+    </form>
+  </div>
+  {% if gb.telegram_group_link %}
+  <div class="mt-8"><a href="{{ gb.telegram_group_link }}" target="_blank" class="btn btn-outline btn-sm">🔗 Open Telegram Group</a></div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-title">Reward Calculator</div>
+  <div class="text-sm text-muted">
+    Reward = {{ gb.reward_percent or 0.5 }}% of total amount<br>
+    Total: ₹{{ "{:,.0f}".format(total_amount) }}<br>
+    Winner reward: ₹{{ "{:,.2f}".format(total_amount * (gb.reward_percent or 0.5) / 100) }}<br>
+    Per person deduction: ₹{{ "{:,.2f}".format(total_amount * (gb.reward_percent or 0.5) / 100 / [entries|length, 1]|max) }}
+  </div>
+</div>
+</div>
+
+<div class="card">
+  <div class="card-title">Participants</div>
+  <table>
+  <thead><tr><th>Name</th><th>Flat</th><th>Tickets</th><th>Total</th><th>Advance</th><th>Quote</th><th>Votes</th><th>Actions</th></tr></thead>
+  <tbody>
+  {% for e in entries %}
+  <tr {% if gb.winner_user_id == e.user_id %}style="background:rgba(34,197,94,.08);"{% endif %}>
+    <td>
+      <div style="font-weight:500;">{{ e.display_name }}{% if gb.winner_user_id == e.user_id %} 🏆{% endif %}</div>
+      <div class="text-xs-muted">{% if e.telegram_username %}@{{ e.telegram_username }}{% endif %}</div>
+      {% if e.forfeited %}<span class="badge badge-danger" style="background:rgba(239,68,68,.15);color:var(--danger);">Forfeited</span>{% endif %}
+    </td>
+    <td class="text-sm">{{ e.flat_number or '—' }}</td>
+    <td class="text-sm">{{ e.tickets }}</td>
+    <td class="text-sm">₹{{ "{:,.0f}".format((e.tickets or 0) * (gb.ticket_price or 0)) }}</td>
+    <td>
+      {% if e.advance_paid %}<span class="text-success text-sm">✅ Paid ₹{{ "{:,.0f}".format(e.advance_amount or 0) }}</span>
+      {% else %}<span class="text-warn text-sm">⏳ ₹{{ "{:,.0f}".format(e.advance_amount or 0) }} due</span>{% endif %}
+    </td>
+    <td class="text-sm">{% if e.quote_text %}{{ e.quote_text[:40] }} — ₹{{ "{:,.0f}".format(e.quote_amount or 0) }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+    <td class="text-sm">{{ e.votes_received or 0 }}</td>
+    <td>
+      <form method="POST" action="{{ url_for('groupbuy_update', gb_id=gb.id) }}" style="display:flex;gap:4px;flex-wrap:wrap;">
+        {% if not e.advance_paid %}
+        <button name="action" value="mark_paid" class="btn btn-success btn-xs">✅ Paid</button>
+        <input type="hidden" name="entry_id" value="{{ e.id }}">
+        {% endif %}
+        {% if not e.forfeited %}
+        <button name="action" value="forfeit" class="btn btn-danger btn-xs" data-confirm="Mark as forfeited?" onclick="document.querySelectorAll('[name=entry_id]').forEach(i=>i.value={{ e.id }})">Forfeit</button>
+        {% endif %}
+        {% if gb.status in ['open','winner_selected'] and not gb.winner_user_id %}
+        <button name="action" value="set_winner" class="btn btn-warn btn-xs" onclick="document.querySelectorAll('[name=entry_id]').forEach(i=>i.value={{ e.id }})">🏆 Winner</button>
+        {% endif %}
+      </form>
+    </td>
+  </tr>
+  {% else %}<tr><td colspan="8" class="text-muted" style="text-align:center;padding:24px;">No participants yet.</td></tr>
+  {% endfor %}
+  </tbody>
+  </table>
+</div>
+{% endblock %}

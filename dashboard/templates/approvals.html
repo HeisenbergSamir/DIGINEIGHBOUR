@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Approvals — {{ community.name }}{% endblock %}
+{% block page_title %}Approval Queue{% endblock %}
+{% block page_sub %}{{ community.name }}{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('dashboard') }}" class="btn btn-outline btn-sm">← Dashboard</a>{% endblock %}
+{% block content %}
+{% if items %}
+{% for item in items %}
+<div class="card" style="border-left:3px solid var(--warn);">
+  <div class="flex-between mb-12">
+    <div><div style="font-weight:600;font-size:15px;">{{ item.title }}</div><div class="text-xs-muted">{{ item.cat_name }} · by {{ item.display_name }}{% if item.telegram_username %} (@{{ item.telegram_username }}){% endif %} · {{ item.created_at[:10] }}</div></div>
+    <span class="badge badge-pending">Pending</span>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+    {% for f in item.fields %}{% set val = item.data_parsed.get(f.key) %}{% if val %}
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;">
+      <div class="text-xs-muted">{{ f.label }}</div><div class="text-sm" style="font-weight:500;">{{ val }}</div>
+    </div>{% endif %}{% endfor %}
+  </div>
+  <div class="flex gap-8">
+    <form method="POST" action="{{ url_for('listing_action', lid=item.listing_id) }}">
+      <button name="action" value="approve" class="btn btn-success">✓ Approve</button>
+    </form>
+    <form method="POST" action="{{ url_for('listing_action', lid=item.listing_id) }}">
+      <button name="action" value="reject" class="btn btn-danger">✗ Reject</button>
+    </form>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="empty"><div class="empty-icon">✅</div><h3>All clear!</h3><p class="text-muted">No listings waiting for approval.</p></div>
+{% endif %}
+{% endblock %}

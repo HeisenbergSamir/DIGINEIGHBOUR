@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Group Buying — {{ community.name }}{% endblock %}
+{% block page_title %}Group Buying{% endblock %}
+{% block page_sub %}{{ community.name }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('dashboard') }}" class="btn btn-outline btn-sm">← Dashboard</a>
+<button class="btn btn-primary btn-sm" onclick="openModal('add-gb')">+ New Group Buy</button>
+{% endblock %}
+{% block content %}
+
+{% for gb in groupbuys %}
+<div class="card" style="border-left:3px solid {{ 'var(--success)' if gb.status=='open' else 'var(--border)' }};">
+  <div class="flex-between mb-12">
+    <div>
+      <div style="font-weight:600;font-size:15px;">{{ gb.title }}</div>
+      <div class="text-xs-muted">{{ gb.cat_name or 'No category' }} · Created {{ gb.created_at[:10] }} · Expires {{ gb.expires_at[:10] if gb.expires_at else 'No expiry' }}</div>
+    </div>
+    <div class="flex gap-8">
+      <span class="badge badge-{{ gb.status }}">{{ gb.status }}</span>
+      <a href="{{ url_for('groupbuy_detail', gb_id=gb.id) }}" class="btn btn-outline btn-sm">Manage →</a>
+    </div>
+  </div>
+  <div class="stats-grid" style="margin-bottom:10px;">
+    <div class="stat"><div class="stat-label">Ticket Price</div><div class="stat-value" style="font-size:18px;">₹{{ "{:,.0f}".format(gb.ticket_price or 0) }}</div></div>
+    <div class="stat accent"><div class="stat-label">Total Tickets</div><div class="stat-value" style="font-size:18px;">{{ gb.total_tickets }}</div></div>
+    <div class="stat success"><div class="stat-label">Total Amount</div><div class="stat-value" style="font-size:18px;">₹{{ "{:,.0f}".format(gb.total_amount or 0) }}</div></div>
+    <div class="stat warn"><div class="stat-label">Threshold</div><div class="stat-value" style="font-size:18px;">₹{{ "{:,.0f}".format(gb.threshold_amount or 0) }}</div></div>
+    <div class="stat"><div class="stat-label">Participants</div><div class="stat-value" style="font-size:18px;">{{ gb.entry_count }}</div></div>
+    <div class="stat"><div class="stat-label">Advance %</div><div class="stat-value" style="font-size:18px;">{{ gb.advance_percent or 20 }}%</div></div>
+  </div>
+  {% if gb.threshold_amount and gb.threshold_amount > 0 %}
+  <div style="background:var(--bg3);border-radius:6px;height:8px;overflow:hidden;margin-bottom:8px;">
+    <div style="width:{{ [100, ((gb.total_amount or 0) / gb.threshold_amount * 100)|int]|min }}%;background:var(--success);height:100%;border-radius:6px;transition:width .3s;"></div>
+  </div>
+  <div class="text-xs-muted">{{ [100, ((gb.total_amount or 0) / gb.threshold_amount * 100)|int]|min }}% of threshold reached</div>
+  {% endif %}
+</div>
+{% else %}
+<div class="empty"><div class="empty-icon">🛒</div><h3>No group buys yet</h3><p class="text-muted">Create one to let residents buy together.</p></div>
+{% endfor %}
+
+<div class="modal-overlay" id="add-gb">
+<div class="modal" style="max-width:580px;">
+  <div class="modal-title">New Group Buy</div>
+  <div class="modal-sub">Residents join, pay 20% advance, vote on quotes</div>
+  <form method="POST" action="{{ url_for('groupbuy_add', cid=community.id) }}">
+    <div class="form-group"><label>Title *</label><input type="text" name="title" required placeholder="e.g. Diwali Firecrackers 2026"></div>
+    <div class="form-group"><label>Description</label><textarea name="description" rows="2" placeholder="Details about this group buy"></textarea></div>
+    <div class="form-group"><label>Item URL (optional)</label><input type="text" name="item_url" placeholder="Amazon link or any URL"></div>
+    <div class="grid-2">
+      <div class="form-group"><label>Ticket Price (₹)</label><input type="number" name="ticket_price" value="2000" min="0" step="100"></div>
+      <div class="form-group"><label>Threshold Amount (₹)</label><input type="number" name="threshold_amount" value="100000" min="0" step="1000"></div>
+    </div>
+    <div class="grid-3">
+      <div class="form-group"><label>Advance %</label><input type="number" name="advance_percent" value="20" min="1" max="100"></div>
+      <div class="form-group"><label>Max Tickets/Person</label><input type="number" name="max_tickets_per_user" value="10" min="1"></div>
+      <div class="form-group"><label>Reward for Winner %</label><input type="number" name="reward_percent" value="0.5" min="0" max="5" step="0.1"></div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>Category</label>
+        <select name="category_id"><option value="">None</option>{% for c in cats %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select>
+      </div>
+      <div class="form-group"><label>Closing Date</label><input type="date" name="expires_at"></div>
+    </div>
+    <div class="form-group"><label>Telegram Group Link (after creating manually)</label><input type="text" name="telegram_group_link" placeholder="https://t.me/+xxxxx"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" onclick="closeModal('add-gb')">Cancel</button>
+      <button type="submit" class="btn btn-primary">Create Group Buy</button>
+    </div>
+  </form>
+</div>
+</div>
+{% endblock %}

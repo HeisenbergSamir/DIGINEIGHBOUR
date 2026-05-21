@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{% if community %}Edit Community{% else %}Add Community{% endif %}{% endblock %}
+{% block page_title %}{% if community %}Edit Community{% else %}Add Community{% endif %}{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('communities') }}" class="btn btn-outline btn-sm">← Back</a>{% endblock %}
+{% block content %}
+<div style="max-width:640px;">
+<div class="card">
+<form method="POST">
+  <div class="grid-2">
+    <div class="form-group"><label>Community Name *</label><input type="text" name="name" value="{{ community.name if community else '' }}" required placeholder="e.g. Sobha City Society"></div>
+    <div class="form-group"><label>Slug (URL-friendly) *</label><input type="text" name="slug" value="{{ community.slug if community else '' }}" {% if community %}readonly{% endif %} required placeholder="e.g. sobha_city"></div>
+  </div>
+  <div class="form-group"><label>Telegram Bot Token</label><input type="text" name="bot_token" value="{{ community.bot_token if community else '' }}" placeholder="7123456789:AAFxxx... (from @BotFather)">
+    <div class="text-xs-muted mt-8">Get from @BotFather → /newbot. Each community needs its own bot.</div>
+  </div>
+  <div class="form-group"><label>Description</label><input type="text" name="description" value="{{ community.description if community else '' }}" placeholder="Short description"></div>
+  <div class="form-group"><label>Welcome Message</label><textarea name="welcome_msg" rows="3" placeholder="Welcome to our community! Use the menu below.">{{ community.welcome_msg if community else '' }}</textarea></div>
+  {% if community %}
+  <div class="form-group"><label>Status</label>
+    <select name="is_active">
+      <option value="1" {% if community.is_active %}selected{% endif %}>Active</option>
+      <option value="0" {% if not community.is_active %}selected{% endif %}>Inactive</option>
+    </select>
+  </div>
+  {% endif %}
+  <button type="submit" class="btn btn-primary">{{ 'Save Changes' if community else 'Create Community' }}</button>
+</form>
+</div>
+</div>
+{% endblock %}
