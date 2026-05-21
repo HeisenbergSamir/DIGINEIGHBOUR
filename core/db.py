@@ -1,7 +1,7 @@
 """DigiNeighbour — Database Layer"""
 import sqlite3, json, os
 
-DB_PATH = os.environ.get("DN_DB", "/app/data/dn.db")
+os.environ.get("DN_DB", "data/dn.db")
 
 SCHEMA = """
 PRAGMA journal_mode=WAL;
