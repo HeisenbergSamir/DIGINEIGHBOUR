@@ -963,7 +963,7 @@ async def post_init(app: Application):
     log.info(f"✅ Bot ready: {community['name']}")
 
 def run_bot(token: str):
-    os.makedirs(os.environ.get("LOG_DIR", "/app/logs"), exist_ok=True)
+    os.makedirs("logs", exist_ok=True)
     log.info(f"Starting DigiNeighbour bot...")
     app = Application.builder().token(token).post_init(post_init).build()
     app.add_handler(CommandHandler("start", cmd_start))
